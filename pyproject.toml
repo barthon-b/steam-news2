@@ -1,0 +1,7 @@
+[project]
+name = "steam-news2"
+version = "0.1.0"
+description = "Retrieve and read Steam news for games you follow"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
