@@ -4,4 +4,11 @@ version = "0.1.0"
 description = "Retrieve and read Steam news for games you follow"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = ["requests>=2.32"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

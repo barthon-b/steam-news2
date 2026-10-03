@@ -33,9 +33,10 @@ frequently also wishlisted/followed).
 
 - Language: **Python** (the `.gitignore` is Python-oriented: `venv`, `pytest`,
   `uv`/`poetry`, `Ruff`).
-- Current contents: `README.md`, `LICENSE`, `.gitignore`, `AGENTS.md`. **No code
-  yet** — no package manifest, so no build/test/lint commands are established.
-  When tooling is added, update the "Commands" section below.
+- Current contents: `fetch_followed.py` (the fetcher), `tests/test_fetch_followed.py`
+  (pytest suite), `pyproject.toml` (uv manifest with a `dev` dependency group),
+  plus `README.md`, `LICENSE`, `.gitignore`, `AGENTS.md`. `main.py` is the
+  default `uv init` stub.
 - Remote: `git@github.com:barthon-b/steam-news2.git`, branch `main`.
 
 ## Technology stack
@@ -59,9 +60,12 @@ Future additions (from README):
 
 ## Commands
 
-_None yet._ Add canonical commands once a manifest exists (expected shape:
-`uv sync`, `uv run …`, `ruff check`). Until then, do not invent commands — run
-scripts directly (e.g. `uv run fetch_followed.py`).
+- `uv run fetch_followed.py` — run the fetcher (reads `STEAM_API_KEY` and `STEAM_ID`).
+- `uv run pytest` — run the test suite (pytest is in the `dev` dependency group).
+- `uv run ruff check .` — lint (once Ruff is added as a dev dependency).
+
+Note: in sandboxed/CI environments where the default `~/.cache/uv` is not
+writable, set `UV_CACHE_DIR` to a writable location.
 
 ## Domain knowledge: Steam data sources
 
