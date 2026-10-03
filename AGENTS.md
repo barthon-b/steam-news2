@@ -33,10 +33,11 @@ frequently also wishlisted/followed).
 
 - Language: **Python** (the `.gitignore` is Python-oriented: `venv`, `pytest`,
   `uv`/`poetry`, `Ruff`).
-- Current contents: `fetch_followed.py` (the fetcher), `tests/test_fetch_followed.py`
-  (pytest suite), `pyproject.toml` (uv manifest with a `dev` dependency group),
-  plus `README.md`, `LICENSE`, `.gitignore`, `AGENTS.md`. `main.py` is the
-  default `uv init` stub.
+- Source lives in `src/steam_news2/`, split into `client.py` (Steam API client),
+  `cache.py` (SQLite app-name cache), and `main.py` (CLI composition). Tests
+  mirror the modules (`tests/test_client.py`, `test_cache.py`, `test_main.py`);
+  `pyproject.toml` is the uv manifest (installable package, `steam-news2` entry
+  point, `dev` dependency group).
 - Remote: `git@github.com:barthon-b/steam-news2.git`, branch `main`.
 
 ## Technology stack
@@ -60,7 +61,7 @@ Future additions (from README):
 
 ## Commands
 
-- `uv run fetch_followed.py` — run the fetcher (reads `STEAM_API_KEY` and `STEAM_ID`).
+- `uv run steam-news2` — run the fetcher (reads `STEAM_API_KEY` and `STEAM_ID`).
 - `uv run pytest` — run the test suite (pytest is in the `dev` dependency group).
 - `uv run ruff check .` — lint (once Ruff is added as a dev dependency).
 

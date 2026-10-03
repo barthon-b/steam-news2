@@ -1,28 +1,12 @@
-#!/usr/bin/env python3
-"""Retrieve the Steam app IDs (and names, where available) of games a user follows.
-
-"Followed" here means the union of three Steam data sets:
-  * owned games             — IPlayerService/GetOwnedGames/v1/
-  * wishlisted games        — IWishlistService/GetWishlist/v1/
-  * explicitly followed     — IStoreService/GetGamesFollowed/v1/
-
-Credentials are read from environment variables:
-  STEAM_API_KEY   Steam Web API key (https://steamcommunity.com/dev/apikey)
-  STEAM_ID        17-digit SteamID64, or a profile vanity name (auto-resolved)
-"""
+"""Steam Web API client."""
 
 from __future__ import annotations
 
-import json
-import logging
-import os
 import re
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-logger = logging.getLogger(__name__)
 
 API_BASE = "https://api.steampowered.com/"
 STEAMID64_RE = re.compile(r"^\d{17}$")
@@ -35,35 +19,6 @@ USER_AGENT = (
 MAX_RETRIES = 2  # retries after the initial attempt => up to 3 attempts per call
 RETRYABLE_STATUSES = (429, 500, 502, 503, 504)
 BACKOFF_BASE_SECONDS = 1.0
-
-
-def merge_followed(owned: dict, wishlisted: list, followed: list) -> list[dict]:
-    """Merge owned/wishlisted/followed app IDs into one deduplicated, sorted list.
-
-    ``owned`` is a ``{appid: name}`` mapping (names are only available for owned
-    games); ``wishlisted`` and ``followed`` are iterables of app IDs. Returns a list
-    of dicts ``{"appid", "name", "sources"}`` sorted by appid ascending. ``name``
-    is ``None`` unless the game is owned; ``sources`` lists every set it belongs to.
-    """
-    sources: dict[int, set] = {}
-    names: dict[int, str | None] = {}
-
-    for appid, name in owned.items():
-        sources.setdefault(appid, set()).add("owned")
-        names[appid] = name
-
-    for appid in wishlisted:
-        sources.setdefault(appid, set()).add("wishlisted")
-        names.setdefault(appid, None)
-
-    for appid in followed:
-        sources.setdefault(appid, set()).add("followed")
-        names.setdefault(appid, None)
-
-    return [
-        {"appid": appid, "name": names.get(appid), "sources": sorted(sources[appid])}
-        for appid in sorted(sources)
-    ]
 
 
 class SteamClient:
@@ -144,38 +99,34 @@ class SteamClient:
         data = self.get_json("IStoreService/GetGamesFollowed/v1/", {"steamid": steamid})
         return [int(appid) for appid in data.get("response", {}).get("appids", [])]
 
+    def news(self, appid: int, count: int = 20) -> list[dict]:
+        """Return the latest news items for ``appid``.
 
-def main(env=None, client: SteamClient | None = None):
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+        Each item is ``{"gid", "title", "url", "author", "contents", "feedlabel", "date"}``.
+        """
+        data = self.get_json(
+            "ISteamNews/GetNewsForApp/v2/", {"appid": appid, "count": count}
+        )
+        items = data.get("appnews", {}).get("newsitems", [])
+        return [
+            {
+                "gid": item.get("gid"),
+                "title": item.get("title"),
+                "url": item.get("url"),
+                "author": item.get("author"),
+                "contents": item.get("contents"),
+                "feedlabel": item.get("feedlabel"),
+                "date": item.get("date"),
+            }
+            for item in items
+        ]
 
-    if env is None:
-        env = os.environ
-    api_key = env.get("STEAM_API_KEY", "").strip()
-    raw_steamid = env.get("STEAM_ID", "").strip()
-    if not api_key or not raw_steamid:
-        raise ValueError("STEAM_API_KEY and STEAM_ID environment variables are required")
-
-    if client is None:
-        client = SteamClient()
-
-    steamid = client.resolve_steamid(raw_steamid, api_key)
-    logger.info("SteamID64: %s", steamid)
-
-    owned = client.owned(steamid, api_key)
-    wishlisted = client.wishlisted(steamid)
-    followed = client.followed(steamid)
-
-    logger.info("owned games: %d", len(owned))
-    logger.info("wishlisted games: %d", len(wishlisted))
-    if not wishlisted:
-        logger.warning("wishlisted games returned empty (wishlist/profile may be private)")
-    logger.info("explicitly followed games: %d", len(followed))
-    if not followed:
-        logger.warning("followed games returned empty (profile may be private)")
-
-    games = merge_followed(owned, wishlisted, followed)
-    print(json.dumps({"count": len(games), "games": games}, indent=2))
-
-
-if __name__ == "__main__":
-    main()
+    def app_names(self) -> dict[int, str]:
+        """Return the full {appid: name} map from the Steam app list."""
+        data = self.get_json("ISteamApps/GetAppList/v2/", {})
+        apps = data.get("applist", {}).get("apps", [])
+        return {
+            int(app["appid"]): app["name"]
+            for app in apps
+            if app.get("appid") is not None and app.get("name")
+        }

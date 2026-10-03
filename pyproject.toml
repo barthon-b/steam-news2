@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "steam-news2"
 version = "0.1.0"
@@ -6,9 +10,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = ["requests>=2.32"]
 
+[project.scripts]
+steam-news2 = "steam_news2.main:main"
+
 [dependency-groups]
 dev = ["pytest>=8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
