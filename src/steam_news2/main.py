@@ -81,7 +81,7 @@ def main(env=None, client: SteamClient | None = None, cache: AppNameCache | None
     if client is None:
         client = SteamClient()
     if cache is None:
-        cache = AppNameCache(APP_CACHE_PATH)
+        cache = AppNameCache(env.get("STEAM_APP_CACHE_PATH", APP_CACHE_PATH))
 
     steamid = client.resolve_steamid(raw_steamid, api_key)
     logger.info("SteamID64: %s", steamid)

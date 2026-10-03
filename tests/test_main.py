@@ -105,3 +105,36 @@ def test_main_prints_json(capsys, tmp_path):
         (1086940, "Baldur's Gate 3"),
     ]
     assert [len(n["items"]) for n in out["news"]] == [1, 1]
+
+
+def test_main_uses_cache_path_from_env(tmp_path):
+    cache_path = tmp_path / "custom.sqlite"
+
+    class FakeClient:
+        def resolve_steamid(self, raw, api_key):
+            return "76561198000000000"
+
+        def owned(self, steamid, api_key):
+            return {730: "Counter-Strike 2"}
+
+        def wishlisted(self, steamid):
+            return []
+
+        def followed(self, steamid):
+            return []
+
+        def app_names(self):
+            return {730: "Counter-Strike 2"}
+
+        def news(self, appid, count=20):
+            return []
+
+    main(
+        env={
+            "STEAM_API_KEY": "k",
+            "STEAM_ID": "76561198000000000",
+            "STEAM_APP_CACHE_PATH": str(cache_path),
+        },
+        client=FakeClient(),
+    )
+    assert AppNameCache(str(cache_path)).load() == {730: "Counter-Strike 2"}

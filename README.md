@@ -10,9 +10,10 @@ This is a work in progress.
 
 - [x] Game retrieval
 - [x] Caching for game titles
-- [x] News retrieval
+- [x] News retrieval (currently limited to facilitate testing)
 - [ ] Persistence for the actual news articles
 - [ ] Streamlit UI
+- [ ] Final containerisation
 
 # problem
 

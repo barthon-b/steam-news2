@@ -62,6 +62,8 @@ Future additions (from README):
 ## Commands
 
 - `uv run steam-news2` — run the fetcher (reads `STEAM_API_KEY` and `STEAM_ID`).
+- `podman build -t steam-news2 .` — build the container image.
+- `podman run --rm -e STEAM_API_KEY=... -e STEAM_ID=... steam-news2` — run in a container.
 - `uv run pytest` — run the test suite (pytest is in the `dev` dependency group).
 - `uv run ruff check .` — lint (once Ruff is added as a dev dependency).
 
